@@ -1,0 +1,45 @@
+name: Run Cypress Tests
+
+# Run tests for PRs to the develop branch
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  test-runner:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x] # Test on multiple Node.js versions
+
+    steps:
+      # Step 1: Check out the repository
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Node.js and cache dependencies
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Step 3: Install dependencies
+      - name: Install Dependencies
+        run: npm ci
+
+      # Step 4: Build the application
+      - name: Build Application
+        run: npm run build
+
+      # Step 5: Start the application
+      - name: Start Application
+        run: npm run start &
+
+      # Step 6: Run Cypress Component Tests
+      - name: Run Cypress Component Tests
+        uses: cypress-io/github-action@v6
+        with:
+          component: true # Run Cypress component tests
+          start: npm run start
